@@ -31,8 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             child: Padding(
               padding: EdgeInsets.all(12),
-              child: CircleAvatar(
-                backgroundImage: AssetImage("assets/accountAvatar.jpg"),
+              child: Hero(
+                tag: "profile",
+                child: CircleAvatar(
+                  backgroundImage: AssetImage("assets/accountAvatar.jpg"),
+                ),
               )
             ),
           ),
@@ -66,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             ],
           ),
-          title: Text("MEC Drive"),
+          title: Text("KLN Drive"),
         ),
         body: TabBarView(
           children: <Widget>[
@@ -83,11 +86,11 @@ class _HomeScreenState extends State<HomeScreen> {
           selectedItemColor: Colors.black,
           items: [
             BottomNavigationBarItem(
-                icon: Icon(Icons.home), title: Text("Home")),
+                icon: Icon(Icons.home), label: "Home"),
             BottomNavigationBarItem(
-                icon: Icon(Icons.directions_bike), title: Text("My Rides")),
+                icon: Icon(Icons.directions_bike), label: "My Rides"),
             BottomNavigationBarItem(
-                icon: Icon(Icons.class_), title: Text("My Requests")),
+                icon: Icon(Icons.class_), label: "My Requests"),
           ],
         ),
       ),

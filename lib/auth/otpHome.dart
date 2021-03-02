@@ -24,9 +24,12 @@ class _OtpHomeState extends State<OtpHome> {
             // Container(
             //   child: Image.asset("images/otp_icon.png"),
             // )
-            Image(
-              height: 150.0,
-              image: AssetImage("assets/otp_icon.png"),
+            Hero(
+              tag: "otp",
+              child: Image(
+                height: 150.0,
+                image: AssetImage("assets/otp_icon.png"),
+              ),
             ),
             Container(
 

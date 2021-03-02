@@ -19,20 +19,21 @@ class _CreditsState extends State<Credits> {
       ),
       body: SingleChildScrollView(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             SizedBox(height: 50.0),
             Center(
               child: Column(
                 children: <Widget>[
-                  profile('Joyal A Johney', 'assets/joyal.jpg', 'Computer Science'),
+                  profile('Arun Balaji R', 'assets/joyal.jpg', 'Computer Science'),
                   SizedBox(
                     height: MediaQuery.of(context).size.height/50,
                   ),
-                  profile('Steev James', 'assets/steeve.jpg', 'Computer Science'),
+                  profile('Dhaithiya Soodhan TS', 'assets/steeve.jpg', 'Computer Science'),
                   SizedBox(
                     height: MediaQuery.of(context).size.height/50,
                   ),
-                  profile('Nikhil Babu', 'assets/nikhil.jpg', 'Computer Science'),
+
                 ],
               ),
             ),
@@ -48,8 +49,8 @@ Widget profile(name, image, dept) {
     crossAxisAlignment: CrossAxisAlignment.center,
     children: <Widget>[
       Container(
-        width: 120,
-        height: 120,
+        width: 200,
+        height: 200,
         decoration: BoxDecoration(
             color: Colors.black,
             image: DecorationImage(image: AssetImage(image), fit: BoxFit.cover),

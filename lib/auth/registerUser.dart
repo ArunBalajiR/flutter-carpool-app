@@ -15,7 +15,7 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   String uid;
-
+  String mob;
   //dropdown variables
   List<String> _branch = [
     'CSE',
@@ -24,47 +24,45 @@ class _SignUpState extends State<SignUp> {
     'EEE',
     'EIE',
     'MECH',
-    'AUTO'
+    'AUTO',
   ]; // Option 2
-  String _selectedBranch; // Option 2
+
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   // Form field variables
   String name;
+  String phone;
   String email;
   String vehicle_no;
-  String branch;
+  String branch = 'CSE';
   String year = '1';
   int carpool;
   bool _isVisible = true;
 
-  // Save user information in Firebase\
+  // Save user information in Firebase and local\
 
   void saveUserInfo() async {
-    uid = FirebaseAuth.instance.currentUser.uid;
-    await userDatabaseService(uid: uid).updateUserData(name, email, branch,year, carpool, vehicle_no);
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // prefs.setString('userName', name);
-    // prefs.setString('userPhone', email);
-    // // prefs.setString('userBranch', branch);
-    // prefs.setString('userYear', year);
-    // prefs.setBool('isLoggedIn', false);
-    // if (carpool == 1)
-    //   prefs.setBool('carpool', true);
-    // else
-    //   prefs.setBool('carpool', false);
 
-    print("stored user details in local storage");
+    uid = FirebaseAuth.instance.currentUser.uid;
+    print(branch);
+
+    await userDatabaseService(uid: uid).updateUserData(name, email, branch,year, carpool, vehicle_no);
+    print("stored user details in firestore");
   }
 
   //save user id from response in local storage
   void userRegistered(Map<String, dynamic> responseData) async {
     SharedPreferences pref = await SharedPreferences.getInstance();
-    pref.setString('token', responseData['_id'].toString());
+    phone = FirebaseAuth.instance.currentUser.phoneNumber;
+    pref.setString('uid', FirebaseAuth.instance.currentUser.uid);
+    pref.setString('phone', phone);
+    pref.setString('userName', name);
+    pref.setString('userBranch', branch);
+    pref.setString('userYear', year);
     pref.setBool('isLoggedIn', true);
 
-    print("stored user id in local storage");
+    print("stored user data in local storage");
   }
 
   // Submit the user details to database
@@ -138,12 +136,15 @@ class _SignUpState extends State<SignUp> {
       body: ListView(
         // mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Image(
-            //
-            height: 250,
 
-            image: AssetImage("assets/signUp.jpg"),
-          ),
+
+             Image(
+              //
+              height: 250,
+
+              image: AssetImage("assets/signUp.jpg"),
+            ),
+
           // SizedBox(
           //   height: MediaQuery.of(context).size.height / 4,
           // ),
@@ -210,7 +211,7 @@ class _SignUpState extends State<SignUp> {
                       Text("Branch: ", style: TextStyle(fontSize: 17.0)),
                       Padding(padding: EdgeInsets.all(5.0)),
                       DropdownButton<String>(
-                        value: _selectedBranch,
+                        value: branch,
                         items: _branch.map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
@@ -219,7 +220,7 @@ class _SignUpState extends State<SignUp> {
                         }).toList(),
                         onChanged: (String value) {
                           setState(() {
-                            _selectedBranch = value;
+                            branch = value;
                           });
                         },
                       ),

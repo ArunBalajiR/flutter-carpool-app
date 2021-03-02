@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -7,25 +8,31 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<ProfilePage> {
+  // final _firestore = FirebaseFirestore.instance;
   String name = "";
   String year = "";
   String branch = "";
   String phone = "";
 
   @override
-  void initState() {
+  void initState()  {
     // TODO: implement initState
     super.initState();
     fetchData();
   }
 
+  Future<void> _signOut() async {
+    await FirebaseAuth.instance.signOut();
+  }
+
   fetchData() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
-    setState(() {
+    setState(()  {
+
       name = pref.getString('userName');
       branch = pref.getString('userBranch');
       year = pref.getString('userYear');
-      phone = pref.getString('userPhone');
+      phone = pref.getString('phone');
     });
   }
 
@@ -56,23 +63,26 @@ class _MyHomePageState extends State<ProfilePage> {
             top: MediaQuery.of(context).size.height / 7,
             child: Column(
               children: <Widget>[
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                      color: Colors.red,
-                      image: DecorationImage(
-                          image: AssetImage('assets/accountAvatar.jpg'),
-                          fit: BoxFit.cover),
-                      borderRadius: BorderRadius.all(Radius.circular(105.0)),
-                      boxShadow: [
-                        BoxShadow(blurRadius: 9.0, color: Colors.black)
-                      ]),
+                Hero(
+                  tag: "profile",
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                        color: Colors.red,
+                        image: DecorationImage(
+                            image: AssetImage('assets/accountAvatar.jpg'),
+                            fit: BoxFit.cover),
+                        borderRadius: BorderRadius.all(Radius.circular(105.0)),
+                        boxShadow: [
+                          BoxShadow(blurRadius: 9.0, color: Colors.black)
+                        ]),
+                  ),
                 ),
                 SizedBox(height: 40.0),
                 Container(
                   child: Text(
-                    name,
+                    "name",
                     style: TextStyle(
                       fontSize: 25.0,
                       // fontWeight: FontWeight.bold,
@@ -86,7 +96,7 @@ class _MyHomePageState extends State<ProfilePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
-                      getBranch(branch),
+                      "getBranch(branch)",
                       style: TextStyle(
                         fontSize: 20.0,
                         color: Colors.grey,
@@ -95,7 +105,7 @@ class _MyHomePageState extends State<ProfilePage> {
                     ),
                     SizedBox(height: 15),
                     Text(
-                      " - " + getYear(year),
+                      '" - " + getYear(year)',
                       style: TextStyle(
                         fontSize: 18.0,
                         color: Colors.grey,
@@ -105,7 +115,7 @@ class _MyHomePageState extends State<ProfilePage> {
                 ),
                 SizedBox(height: 30),
                 Text(
-                  'Phone: ' + phone,
+                  "'Phone: ' + phone",
                   style: TextStyle(
                     fontSize: 20.0,
                     // fontWeight: FontWeight.bold,
@@ -116,7 +126,24 @@ class _MyHomePageState extends State<ProfilePage> {
                 ),
                 Image(
                   image: AssetImage("assets/signUp.jpg"),
-                  // width: 20,
+                  width: 290,
+                ),
+                Container(
+                  margin: EdgeInsets.all(10),
+                  width: double.infinity,
+                  height: 50.0,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      _signOut();
+                      Navigator.pushNamed(context,'/otphome');
+                      SharedPreferences preferences = await SharedPreferences.getInstance();
+                      await preferences.clear();
+                    },
+                    child: Text(
+                      'Logout',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
                 )
               ],
             ),
@@ -145,10 +172,13 @@ class GetClipper extends CustomClipper<Path> {
 }
 
 getBranch(String branch) {
-  if (branch == 'CSA' || branch == 'CSB') return 'Computer Science';
-  if (branch == 'ECA' || branch == 'ECB') return 'Electronics & Communication';
-  if (branch == 'EB') return 'Electronics & Biomedical';
+  if (branch == 'CSE') return 'Computer Science';
+  if (branch == 'ECE') return 'Electronics & Communication';
+  if (branch == 'IT') return 'Information Technology';
   if (branch == 'EEE') return 'Electronics & Electrical';
+  if (branch == 'MECH') return 'Mechanical Engineering';
+  if (branch == 'AUTO') return 'Automobile Engineering';
+  if (branch == 'EIE') return 'Electronics & Instrumentation';
   return branch;
 }
 

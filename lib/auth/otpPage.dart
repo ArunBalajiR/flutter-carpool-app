@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:klndrive/HomeScreen/homeScreen.dart';
+import'package:shared_preferences/shared_preferences.dart';
 import 'package:pinput/pin_put/pin_put.dart';
 import 'package:klndrive/auth/registerUser.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -88,10 +90,13 @@ class OtpPageState extends State<OtpPage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 16.0),
-                    child: Image(
-                      image: AssetImage('assets/otp_icon.png'),
-                      height: 120.0,
-                      width: 120.0,
+                    child: Hero(
+                      tag: "otp",
+                      child: Image(
+                        image: AssetImage('assets/otp_icon.png'),
+                        height: 120.0,
+                        width: 120.0,
+                      ),
                     ),
                   ),
                   Padding(
@@ -113,6 +118,8 @@ class OtpPageState extends State<OtpPage> {
                             textAlign: TextAlign.center,
                           ),
                           onPressed: () => _verifyPhone(),
+
+
                         ),
                       ],
                     ),
@@ -176,13 +183,23 @@ class OtpPageState extends State<OtpPage> {
           await _auth
               .signInWithCredential(credential)
               .then((value) async {
-            if (value.user != null) {
+            final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+            var status = sharedPreferences.getBool('isLoggedIn') ?? false;
+            if (status) {
               Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => SignUp()),
                       (route) => false);
+            }else{
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                      (route) => false);
             }
           });
+
+
+
         },
         verificationFailed: (FirebaseAuthException e) {
           print(e.message);

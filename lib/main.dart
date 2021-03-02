@@ -9,24 +9,30 @@ import 'package:klndrive/misc/credits.dart';
 import 'package:klndrive/auth/otpPage.dart';
 import 'package:klndrive/auth/otpHome.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Firebase.initializeApp();
-  runApp(MyApp());
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var phone = prefs.getString("phone");
+  print(phone);
+  runApp(MyApp(screen: phone == null ? OtpHome() : HomeScreen()));
 }
 
 
 class MyApp extends StatelessWidget {
+  final Widget screen;
+  MyApp({this.screen});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MecDrive',
       //test phase
-      home: OtpHome(),
+      home: screen,
       routes: {
+        '/otphome' : (context) => OtpHome(),
         '/otppage' : (context) => OtpPage(),
         '/homescreen' : (context) => HomeScreen(),
         '/register'   : (context) => SignUp(),
