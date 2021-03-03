@@ -30,13 +30,13 @@ class _SetPriceState extends State<SetPrice> {
         ),
       ),
       actions: <Widget>[
-        FlatButton(
+        TextButton(
           child: Text("Set price"),
           onPressed: () {
             Navigator.of(context).pop(price.toString());
           },
         ),
-        FlatButton(
+        TextButton(
           child: Text("cancel"),
           onPressed: () {
             Navigator.of(context).pop("0.0");

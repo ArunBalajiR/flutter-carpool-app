@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:klndrive/sharedPreferences/sharedPreferences.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -26,14 +27,27 @@ class _MyHomePageState extends State<ProfilePage> {
   }
 
   fetchData() async {
-    SharedPreferences pref = await SharedPreferences.getInstance();
-    setState(()  {
+    MySharedPreferences.instance
+        .getStringValue("userName")
+        .then((value) => setState(() {
+         name = value;
+    }));
+    MySharedPreferences.instance
+        .getStringValue("userBranch")
+        .then((value) => setState(() {
+      branch = value;
+    }));
+    MySharedPreferences.instance
+        .getStringValue("userYear")
+        .then((value) => setState(() {
+      year = value;
+    }));
+    MySharedPreferences.instance
+        .getStringValue("userPhone")
+        .then((value) => setState(() {
+      phone = value;
+    }));
 
-      name = pref.getString('userName');
-      branch = pref.getString('userBranch');
-      year = pref.getString('userYear');
-      phone = pref.getString('phone');
-    });
   }
 
   @override
@@ -82,7 +96,7 @@ class _MyHomePageState extends State<ProfilePage> {
                 SizedBox(height: 40.0),
                 Container(
                   child: Text(
-                    "name",
+                    name,
                     style: TextStyle(
                       fontSize: 25.0,
                       // fontWeight: FontWeight.bold,
@@ -96,7 +110,7 @@ class _MyHomePageState extends State<ProfilePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
-                      "getBranch(branch)",
+                      getBranch(branch),
                       style: TextStyle(
                         fontSize: 20.0,
                         color: Colors.grey,
@@ -105,7 +119,7 @@ class _MyHomePageState extends State<ProfilePage> {
                     ),
                     SizedBox(height: 15),
                     Text(
-                      '" - " + getYear(year)',
+                      " - " + getYear(year),
                       style: TextStyle(
                         fontSize: 18.0,
                         color: Colors.grey,
@@ -115,7 +129,7 @@ class _MyHomePageState extends State<ProfilePage> {
                 ),
                 SizedBox(height: 30),
                 Text(
-                  "'Phone: ' + phone",
+                  'Phone: ' + phone,
                   style: TextStyle(
                     fontSize: 20.0,
                     // fontWeight: FontWeight.bold,

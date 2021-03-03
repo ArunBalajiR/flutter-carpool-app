@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'FindRide/findaRide.dart';
 import 'OfferRide/offerRide.dart';
+// import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -10,6 +11,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // Bottom navigation bar
   int _currentIndex = 0;
+
+
+
 
   void onTabTapped(int index) {
     if (index == 1) Navigator.pushNamed(context, '/myrides');
@@ -80,19 +84,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         // Bottom Navigation
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: onTabTapped,
-          selectedItemColor: Colors.black,
-          items: [
-            BottomNavigationBarItem(
-                icon: Icon(Icons.home), label: "Home"),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.directions_bike), label: "My Rides"),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.class_), label: "My Requests"),
-          ],
-        ),
+        // bottomNavigationBar: BottomNavigationBar(
+        //   currentIndex: _currentIndex,
+        //   onTap: onTabTapped,
+        //   selectedItemColor: Colors.black,
+        //   items: [
+        //     BottomNavigationBarItem(
+        //         icon: Icon(Icons.home), label: "Home"),
+        //     BottomNavigationBarItem(
+        //         icon: Icon(Icons.directions_bike), label: "My Rides"),
+        //     BottomNavigationBarItem(
+        //         icon: Icon(Icons.class_), label: "My Requests"),
+        //   ],
+        // ),
       ),
     );
   }

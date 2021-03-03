@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:klndrive/auth/userData.dart';
+import 'package:klndrive/sharedPreferences/sharedPreferences.dart';
 
 class SignUp extends StatefulWidget {
   final String phone;
@@ -43,26 +44,35 @@ class _SignUpState extends State<SignUp> {
   // Save user information in Firebase and local\
 
   void saveUserInfo() async {
-
     uid = FirebaseAuth.instance.currentUser.uid;
-    print(branch);
-
-    await userDatabaseService(uid: uid).updateUserData(name, email, branch,year, carpool, vehicle_no);
+    phone = FirebaseAuth.instance.currentUser.phoneNumber;
+    await UserDatabaseService(uid: uid).updateUserData(name, email, branch,year, carpool, vehicle_no);
     print("stored user details in firestore");
+
+    //save user id from response in local storage
+
+    MySharedPreferences.instance.setStringValue("userName", name);
+    MySharedPreferences.instance.setStringValue("userPhone", phone);
+    MySharedPreferences.instance.setStringValue("userBranch", branch);
+    MySharedPreferences.instance.setStringValue("userYear", year);
+    MySharedPreferences.instance.setBoolValue("isLoggedIn", true);
+
+    print("stored user data in local storage");
+
   }
 
   //save user id from response in local storage
   void userRegistered(Map<String, dynamic> responseData) async {
     SharedPreferences pref = await SharedPreferences.getInstance();
-    phone = FirebaseAuth.instance.currentUser.phoneNumber;
-    pref.setString('uid', FirebaseAuth.instance.currentUser.uid);
-    pref.setString('phone', phone);
-    pref.setString('userName', name);
-    pref.setString('userBranch', branch);
-    pref.setString('userYear', year);
-    pref.setBool('isLoggedIn', true);
 
-    print("stored user data in local storage");
+    // pref.setString('uid', FirebaseAuth.instance.currentUser.uid);
+    // pref.setString('phone', phone);
+    // pref.setString('userName', name);
+    // pref.setString('userBranch', branch);
+    // pref.setString('userYear', year);
+    // pref.setBool('isLoggedIn', true);
+
+
   }
 
   // Submit the user details to database

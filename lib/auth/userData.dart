@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 final _firestore = FirebaseFirestore.instance;
-class userDatabaseService{
-  userDatabaseService({this.uid});
+class UserDatabaseService{
+  UserDatabaseService({this.uid});
   final String uid;
 
 
