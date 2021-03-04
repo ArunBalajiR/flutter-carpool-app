@@ -43,7 +43,8 @@ class OtpPageState extends State<OtpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomPadding: false,
+
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text("Enter OTP"),
         backgroundColor: Colors.blue,

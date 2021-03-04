@@ -18,9 +18,13 @@ dependencies:
   firebase_core: ^0.7.0
   cloud_firestore: ^0.16.0+1
   google_maps_flutter: ^1.2.0
-#  geoflutterfire: ^2.2.1
+  fluttertoast: ^7.1.8
+  geocoder: ^0.2.1
+
   geolocator: ^6.2.1
   datetime_picker_formfield: ^1.0.0
+  flutter_polyline_points: ^0.1.0
+
   pinput: ^0.2.0
 
   cupertino_icons: ^1.0.2

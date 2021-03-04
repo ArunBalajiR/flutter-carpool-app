@@ -7,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:klndrive/auth/userData.dart';
 import 'package:klndrive/sharedPreferences/sharedPreferences.dart';
 
+
+
 class SignUp extends StatefulWidget {
   final String phone;
   SignUp({this.phone});
@@ -41,7 +43,6 @@ class _SignUpState extends State<SignUp> {
   int carpool;
   bool _isVisible = true;
 
-  // Save user information in Firebase and local\
 
   void saveUserInfo() async {
     uid = FirebaseAuth.instance.currentUser.uid;
@@ -61,19 +62,19 @@ class _SignUpState extends State<SignUp> {
 
   }
 
-  //save user id from response in local storage
-  void userRegistered(Map<String, dynamic> responseData) async {
-    SharedPreferences pref = await SharedPreferences.getInstance();
-
-    // pref.setString('uid', FirebaseAuth.instance.currentUser.uid);
-    // pref.setString('phone', phone);
-    // pref.setString('userName', name);
-    // pref.setString('userBranch', branch);
-    // pref.setString('userYear', year);
-    // pref.setBool('isLoggedIn', true);
-
-
-  }
+  // //save user id from response in local storage
+  // void userRegistered(Map<String, dynamic> responseData) async {
+  //   SharedPreferences pref = await SharedPreferences.getInstance();
+  //
+  //   // pref.setString('uid', FirebaseAuth.instance.currentUser.uid);
+  //   // pref.setString('phone', phone);
+  //   // pref.setString('userName', name);
+  //   // pref.setString('userBranch', branch);
+  //   // pref.setString('userYear', year);
+  //   // pref.setBool('isLoggedIn', true);
+  //
+  //
+  // }
 
   // Submit the user details to database
   void _submitForm(BuildContext context) async {
@@ -124,9 +125,6 @@ class _SignUpState extends State<SignUp> {
       final Map<String, dynamic> responseData = json.decode(response.body);
       print(responseData);
 
-      //set the unique id from response in sharedpreferences
-      //set ifRegistered(bool)
-      userRegistered(responseData);
 
       // go to home screen
       Timer(Duration(seconds: 2), () {
@@ -142,7 +140,7 @@ class _SignUpState extends State<SignUp> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      resizeToAvoidBottomPadding: true,
+      resizeToAvoidBottomInset: false,
       body: ListView(
         // mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[

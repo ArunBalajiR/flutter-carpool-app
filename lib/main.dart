@@ -3,7 +3,6 @@ import 'package:klndrive/HomeScreen/homeScreen.dart';
 import 'package:klndrive/MyRequests/myRequestList.dart';
 import 'package:klndrive/MyRides/myRides.dart';
 import 'package:klndrive/Profile/profile.dart';
-import 'package:klndrive/SplashScreen/splashScreen.dart';
 import 'package:klndrive/auth/registerUser.dart';
 import 'package:klndrive/misc/credits.dart';
 import 'package:klndrive/auth/otpPage.dart';
@@ -28,7 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'MecDrive',
+      title: 'KLN Drive',
       //test phase
       home: screen,
       routes: {

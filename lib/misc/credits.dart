@@ -25,11 +25,11 @@ class _CreditsState extends State<Credits> {
             Center(
               child: Column(
                 children: <Widget>[
-                  profile('Arun Balaji R', 'assets/joyal.jpg', 'Computer Science'),
+                  profile('Arun Balaji R', 'assets/arun.jpg', 'Computer Science'),
                   SizedBox(
                     height: MediaQuery.of(context).size.height/50,
                   ),
-                  profile('Dhaithiya Soodhan TS', 'assets/steeve.jpg', 'Computer Science'),
+                  profile('Dhaithiya Soodhan TS', 'assets/dhaithiya.jpg', 'Computer Science'),
                   SizedBox(
                     height: MediaQuery.of(context).size.height/50,
                   ),

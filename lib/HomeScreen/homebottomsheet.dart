@@ -8,7 +8,7 @@ class HomeBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-        initialChildSize: 0.15,
+        initialChildSize: 0.379,
         minChildSize: 0.15,
         maxChildSize: 0.379,
         builder: (context, scrollController) {
