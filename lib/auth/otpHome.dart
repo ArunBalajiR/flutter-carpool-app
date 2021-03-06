@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// import 'package:phone_auth_project/otp.dart';
 import 'package:klndrive/auth/otpPage.dart';
 
 class OtpHome extends StatefulWidget {
@@ -21,9 +20,6 @@ class _OtpHomeState extends State<OtpHome> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Column(children: [
-            // Container(
-            //   child: Image.asset("images/otp_icon.png"),
-            // )
             Hero(
               tag: "otp",
               child: Image(
@@ -78,7 +74,6 @@ class _OtpHomeState extends State<OtpHome> {
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (context) => OtpPage(phone: _controller.text,)));
-                // Navigator.pushNamed(context,'/otppage');
               },
               child: Text(
                 'Next',

@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:klndrive/auth/userData.dart';
 import 'package:klndrive/sharedPreferences/sharedPreferences.dart';
-
-
 
 class SignUp extends StatefulWidget {
   final String phone;
@@ -30,24 +27,23 @@ class _SignUpState extends State<SignUp> {
     'AUTO',
   ]; // Option 2
 
-
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   // Form field variables
   String name;
   String phone;
   String email;
-  String vehicle_no;
+  String vehicleNo;
   String branch = 'CSE';
   String year = '1';
   int carpool;
   bool _isVisible = true;
 
-
   void saveUserInfo() async {
     uid = FirebaseAuth.instance.currentUser.uid;
     phone = FirebaseAuth.instance.currentUser.phoneNumber;
-    await UserDatabaseService(uid: uid).updateUserData(name, email, branch,year, carpool, vehicle_no);
+    await UserDatabaseService(uid: uid)
+        .updateUserData(name, email, branch, year, carpool, vehicleNo);
     print("stored user details in firestore");
 
     //save user id from response in local storage
@@ -57,24 +53,10 @@ class _SignUpState extends State<SignUp> {
     MySharedPreferences.instance.setStringValue("userBranch", branch);
     MySharedPreferences.instance.setStringValue("userYear", year);
     MySharedPreferences.instance.setBoolValue("isLoggedIn", true);
+    MySharedPreferences.instance.setIntValue("carpool", carpool);
 
     print("stored user data in local storage");
-
   }
-
-  // //save user id from response in local storage
-  // void userRegistered(Map<String, dynamic> responseData) async {
-  //   SharedPreferences pref = await SharedPreferences.getInstance();
-  //
-  //   // pref.setString('uid', FirebaseAuth.instance.currentUser.uid);
-  //   // pref.setString('phone', phone);
-  //   // pref.setString('userName', name);
-  //   // pref.setString('userBranch', branch);
-  //   // pref.setString('userYear', year);
-  //   // pref.setBool('isLoggedIn', true);
-  //
-  //
-  // }
 
   // Submit the user details to database
   void _submitForm(BuildContext context) async {
@@ -125,7 +107,6 @@ class _SignUpState extends State<SignUp> {
       final Map<String, dynamic> responseData = json.decode(response.body);
       print(responseData);
 
-
       // go to home screen
       Timer(Duration(seconds: 2), () {
         Navigator.pop(context);
@@ -144,18 +125,12 @@ class _SignUpState extends State<SignUp> {
       body: ListView(
         // mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          Image(
+            //
+            height: 250,
 
-
-             Image(
-              //
-              height: 250,
-
-              image: AssetImage("assets/signUp.jpg"),
-            ),
-
-          // SizedBox(
-          //   height: MediaQuery.of(context).size.height / 4,
-          // ),
+            image: AssetImage("assets/signUp.jpg"),
+          ),
           // Sign Up container
           Container(
             padding: EdgeInsets.fromLTRB(30.0, 10.0, 30.0, 10.0),
@@ -188,7 +163,10 @@ class _SignUpState extends State<SignUp> {
                     keyboardType: TextInputType.text,
                     style: TextStyle(fontFamily: "Poppins"),
                     validator: (value) {
-                      if (value.isEmpty) return "Name field is required";
+                      if (value.isEmpty) {
+                        return "Name field is required";
+                      }
+                      return null;
                     },
                     onChanged: (val) {
                       setState(() {
@@ -202,7 +180,10 @@ class _SignUpState extends State<SignUp> {
                         labelText: "Email ID", icon: Icon(Icons.mail_outline)),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
-                      if (value.isEmpty) return "Email Id is required";
+                      if (value.isEmpty) {
+                        return "Email Id is required";
+                      }
+                      return null;
                     },
                     onChanged: (val) {
                       setState(() {
@@ -304,11 +285,14 @@ class _SignUpState extends State<SignUp> {
                       keyboardType: TextInputType.text,
                       style: TextStyle(fontFamily: "Poppins"),
                       validator: (value) {
-                        if (value.isEmpty) return "This field is required";
+                        if (value.isEmpty) {
+                          return "This field is required";
+                        }
+                        return null;
                       },
                       onChanged: (val) {
                         setState(() {
-                          vehicle_no = val;
+                          vehicleNo = val;
                         });
                       },
                     ),

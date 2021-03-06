@@ -31,7 +31,8 @@ class _SetPriceState extends State<SetPrice> {
       ),
       actions: <Widget>[
         TextButton(
-          child: Text("Set price"),
+
+          child: Text("Set Price"),
           onPressed: () {
             Navigator.of(context).pop(price.toString());
           },

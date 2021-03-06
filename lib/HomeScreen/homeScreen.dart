@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'FindRide/findaRide.dart';
-import 'OfferRide/offerRide.dart';
-
+import 'giveaRide.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -9,14 +7,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-
-
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
   @override
   void initState() {
@@ -51,5 +41,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
 
+
+
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }

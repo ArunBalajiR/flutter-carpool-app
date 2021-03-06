@@ -17,9 +17,11 @@ dependencies:
   firebase_auth: ^0.20.1
   firebase_core: ^0.7.0
   cloud_firestore: ^0.16.0+1
-  google_maps_flutter: ^1.2.0
+  google_maps_flutter: ^0.5.13
   fluttertoast: ^7.1.8
   geocoder: ^0.2.1
+
+  search_map_place: ^0.3.0
 
   geolocator: ^6.2.1
   datetime_picker_formfield: ^1.0.0

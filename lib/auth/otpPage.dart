@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:klndrive/HomeScreen/homeScreen.dart';
 import'package:shared_preferences/shared_preferences.dart';
 import 'package:pinput/pin_put/pin_put.dart';
 import 'package:klndrive/auth/registerUser.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:klndrive/auth/userData.dart';
+
 
 class OtpPage extends StatefulWidget {
   final String phone;
@@ -179,6 +179,8 @@ class OtpPageState extends State<OtpPage> {
 
   _verifyPhone() async {
     await _auth.verifyPhoneNumber(
+        timeout: Duration(seconds:60),
+
         phoneNumber: '+91${widget.phone}',
         verificationCompleted: (PhoneAuthCredential credential) async {
           await _auth
