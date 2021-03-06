@@ -11,31 +11,29 @@ import 'package:geolocator/geolocator.dart';
 import 'package:search_map_place/search_map_place.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
-
 class FindaRide extends StatefulWidget {
   @override
   _FindaRideState createState() => _FindaRideState();
 }
 
 class _FindaRideState extends State<FindaRide> {
-
   //Google map variables
   Position position;
   bool mapToggle = false;
-
-
 
   GoogleMapController _mapController;
 
   double _originLatitude, _originLongitude;
   LatLng placeCords, startCords, endCords;
   double _destLatitude, _destLongitude;
-  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+  Map<MarkerId, Marker> markers = {};
   Map<PolylineId, Polyline> polylines = {};
   PolylinePoints polylinePoints = PolylinePoints();
   List<LatLng> polylineCoordinates = [];
   String _googleAPiKey = "AIzaSyAUGbmKdakEcP5AA21mBQtyWw3EgyqBf0o";
   String mapStyle;
+  BitmapDescriptor bitmapImage;
+
 
 
 
@@ -58,8 +56,17 @@ class _FindaRideState extends State<FindaRide> {
   bool showStartingScreen = true;
   bool isTouchable = false;
 
-  void _currentLocation() async {
+  //custom icon
+  Future <BitmapDescriptor> _createMarkerImageFromAsset(String iconPath) async {
+    ImageConfiguration configuration = ImageConfiguration();
+    bitmapImage = await BitmapDescriptor.fromAssetImage(
+        configuration,iconPath);
+    return bitmapImage;
+  }
 
+
+
+  void _currentLocation() async {
     _mapController.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(
         bearing: 0,
@@ -69,32 +76,28 @@ class _FindaRideState extends State<FindaRide> {
     ));
   }
 
-  void getCurrentPosition() async{
-    Position currentPosition = await GeolocatorPlatform.instance.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  void getCurrentPosition() async {
 
+    Position currentPosition = await GeolocatorPlatform.instance
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     setState(() {
       position = currentPosition;
       mapToggle = true;
       print(position);
-
-      //circle around my location
-
-
     });
 
-
-
-    CollectionReference location = FirebaseFirestore.instance.collection('location');
+    CollectionReference location =
+        FirebaseFirestore.instance.collection('location');
     // FirebaseAuth _auth = FirebaseAuth.instance;
     // String uid = _auth.currentUser.uid.toString();
-    final coordinated = new Coordinates(position.latitude,position.longitude);
-    var address = await Geocoder.local.findAddressesFromCoordinates(coordinated);
+    final coordinated = new Coordinates(position.latitude, position.longitude);
+    var address =
+        await Geocoder.local.findAddressesFromCoordinates(coordinated);
     var firstAddress = address.first;
 
     location.add({
       'username': await MySharedPreferences.instance.getStringValue("userName"),
-      'lattitude': position.latitude,
-      'longitude': position.longitude,
+      'locationpoint': GeoPoint(position.latitude, position.longitude),
       'address': firstAddress.addressLine,
       'postalcode': firstAddress.postalCode,
       'locality': firstAddress.locality,
@@ -107,30 +110,33 @@ class _FindaRideState extends State<FindaRide> {
     print(firstAddress.postalCode);
     print(firstAddress.locality);
 
-    //getting markers from firestore
+    //set custom icon
+    _createMarkerImageFromAsset("assets/locationpin.png");
 
+    //calling marker function
+    await getMarkerData();
 
 
   }
-
-
 
   @override
   void initState() {
-    getMarkerData();
-    getCurrentPosition();
     super.initState();
+    getCurrentPosition();
+
   }
 
-  void initMarker(specify, specifyID) async {
+  void initMarker(specify,specifyID) async {
+
     var markerIdval = specifyID;
     final MarkerId markerId = MarkerId(markerIdval);
     final Marker marker = Marker(
-      markerId : markerId,
-      position: LatLng(double.parse(specify['lattitude']), double.parse(specify['longitude'].toDouble())),
-      infoWindow: InfoWindow(title: specify['username'],snippet: specify['address']),
-
-
+      markerId: markerId,
+      icon: bitmapImage,
+      position: LatLng(specify['locationpoint'].latitude,
+          specify['locationpoint'].longitude),
+      infoWindow:
+          InfoWindow(title: specify['username'], snippet: specify['address']),
     );
     setState(() {
       markers[markerId] = marker;
@@ -138,26 +144,24 @@ class _FindaRideState extends State<FindaRide> {
   }
 
   getMarkerData() async {
-    FirebaseFirestore.instance.collection('location').get().then((myLocData){
-      if(myLocData.docs.isNotEmpty){
-        for(int i=0;i<myLocData.docs.length;i++){
-            initMarker(myLocData.docs[i].data, myLocData.docs[i].id);
+    FirebaseFirestore.instance.collection('location').get().then((QuerySnapshot snapshot) {
+
+      if (snapshot.docs.isNotEmpty) {
+        for (int i = 0; i < snapshot.docs.length; i++) {
+          initMarker(snapshot.docs[i].data(), snapshot.docs[i].id);
+
         }
       }
     });
   }
 
-
-
-  Set<Marker> getMarker(){
+  Set<Marker> getMarker() {
     return <Marker>[
       Marker(
         markerId: MarkerId("one"),
-        position: LatLng(9.880892,78.112317),
+        position: LatLng(9.880892, 78.112317),
         icon: BitmapDescriptor.defaultMarker,
-        infoWindow: InfoWindow(title:"one"),
-
-
+        infoWindow: InfoWindow(title: "one"),
       )
     ].toSet();
   }
@@ -170,20 +174,21 @@ class _FindaRideState extends State<FindaRide> {
   Widget homeScaffold() {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-
-
       body: Stack(
         children: <Widget>[
-          mapToggle ? _googleMap(context) : Center(child: Text('Loading...',style: TextStyle(fontSize: 20.0),),),
+          mapToggle
+              ? _googleMap(context)
+              : Center(
+                  child: Text(
+                    'Loading...',
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                ),
           _startingScreen(showStartingScreen),
-
         ],
       ),
     );
   }
-
-
-
 
   Widget _startingScreen(bool isVisible) {
     return Visibility(
@@ -194,14 +199,20 @@ class _FindaRideState extends State<FindaRide> {
             height: 250.0,
             child: ListView(
               children: <Widget>[
-                _fillField("From: ", Colors.blue, 10.0, BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueBlue
-    )),
-                _fillField("To: ", Colors.red, 10.0, BitmapDescriptor.defaultMarkerWithHue(
-    BitmapDescriptor.hueRed)),
+                _fillField(
+                    "From: ",
+                    Colors.blue,
+                    10.0,
+                    BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueBlue)),
+                _fillField(
+                    "To: ",
+                    Colors.red,
+                    10.0,
+                    BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueRed)),
                 _dateField(),
               ],
-
             ),
           ),
           _customButton(Alignment.bottomRight, 145.0, Icons.my_location, "Me",
@@ -210,68 +221,64 @@ class _FindaRideState extends State<FindaRide> {
               _onSearchPressed),
           _customButton(Alignment.bottomRight, 15.0, Icons.add, "Create",
               _onCreatePressed),
-
         ],
       ),
     );
   }
 
-  Align _fillField(String str, Color clr, double top, BitmapDescriptor bitmapDescriptor) {
+  Align _fillField(
+      String str, Color clr, double top, BitmapDescriptor bitmapDescriptor) {
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
-        padding: EdgeInsets.only(left: 20.0, right: 20.0, top: top),
-        child: SearchMapPlaceWidget(
-          language: 'en',
-          hasClearButton: true,
-          placeType: PlaceType.address,
-          apiKey: _googleAPiKey,
-          placeholder: str,
-          icon: IconData(0xe55f, fontFamily: 'MaterialIcons'),
-          iconColor: clr,
-          // The position used to give better recommendations. In this case we are using the user position
-          location: LatLng(37.9931036, 23.7301123),
-          radius: 30000,
-          onSelected: (Place place) async {
-            final geolocation = await place.geolocation;
-            _mapController.animateCamera(CameraUpdate.newLatLng(geolocation.coordinates));
-            _mapController.animateCamera(CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
+          padding: EdgeInsets.only(left: 20.0, right: 20.0, top: top),
+          child: SearchMapPlaceWidget(
+            language: 'en',
+            hasClearButton: true,
+            placeType: PlaceType.address,
+            apiKey: _googleAPiKey,
+            placeholder: str,
+            icon: IconData(0xe55f, fontFamily: 'MaterialIcons'),
+            iconColor: clr,
+            // The position used to give better recommendations. In this case we are using the user position
+            location: LatLng(37.9931036, 23.7301123),
+            radius: 30000,
+            onSelected: (Place place) async {
+              final geolocation = await place.geolocation;
+              _mapController.animateCamera(
+                  CameraUpdate.newLatLng(geolocation.coordinates));
+              _mapController.animateCamera(
+                  CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
 
-            _clearPolylines();
+              _clearPolylines();
 
-            if(str=="From: "){
-              from = place.description;
-              _addMarker(geolocation.coordinates, place.placeId, bitmapDescriptor, place.description);
-              _originLatitude = placeCords.latitude;
-              _originLongitude = placeCords.longitude;
-              startCords = placeCords;
-              setState(() {
+              if (str == "From: ") {
+                from = place.description;
+                _addMarker(geolocation.coordinates, place.placeId,
+                    bitmapDescriptor, place.description);
+                _originLatitude = placeCords.latitude;
+                _originLongitude = placeCords.longitude;
+                startCords = placeCords;
+                setState(() {});
+              }
 
-              });
-            }
+              if (str == "To: ") {
+                to = place.description;
+                _addMarker(geolocation.coordinates, place.placeId,
+                    bitmapDescriptor, place.description);
+                _destLatitude = placeCords.latitude;
+                _destLongitude = placeCords.longitude;
+                endCords = placeCords;
+              }
 
-            if(str=="To: "){
-              to = place.description;
-              _addMarker(geolocation.coordinates, place.placeId, bitmapDescriptor, place.description);
-              _destLatitude = placeCords.latitude;
-              _destLongitude = placeCords.longitude;
-              endCords = placeCords;
-            }
-
-            if(_originLongitude!= null && _originLatitude != null && _destLongitude != null && _destLatitude != null)
-              _getPolyline("demo");
-
-          },
-
-        )
-      ),
-
+              if (_originLongitude != null &&
+                  _originLatitude != null &&
+                  _destLongitude != null &&
+                  _destLatitude != null) _getPolyline("demo");
+            },
+          )),
     );
   }
-
-
-
-
 
   Align _dateField() {
     return Align(
@@ -283,20 +290,19 @@ class _FindaRideState extends State<FindaRide> {
               onChanged: (DateTime dt) {
                 dateTime = dt;
               },
-              resetIcon: Icon(Icons.clear, color: Colors.black,),
+              resetIcon: Icon(
+                Icons.clear,
+                color: Colors.black,
+              ),
               decoration: InputDecoration(
                   filled: true,
                   border: OutlineInputBorder(
                       borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(5.0)
-                  ),
+                      borderRadius: BorderRadius.circular(5.0)),
                   //suffixIcon: Icon(Icons.calendar_today, color: Colors.black,),
                   fillColor: Colors.white,
                   labelText: "Date: ",
-                  labelStyle: TextStyle(
-                      color: Colors.black
-                  )
-              ),
+                  labelStyle: TextStyle(color: Colors.black)),
               onShowPicker: (context, currentValue) async {
                 final date = await showDatePicker(
                     context: context,
@@ -307,7 +313,7 @@ class _FindaRideState extends State<FindaRide> {
                   final time = await showTimePicker(
                     context: context,
                     initialTime:
-                    TimeOfDay.fromDateTime(currentValue ?? DateTime.now()),
+                        TimeOfDay.fromDateTime(currentValue ?? DateTime.now()),
                   );
                   return DateTimeField.combine(date, time);
                 } else {
@@ -322,8 +328,8 @@ class _FindaRideState extends State<FindaRide> {
     return Align(
       alignment: alignment,
       child: Padding(
-        padding: EdgeInsets.only(
-            right: 10.0, bottom: bottom, left: 10.0, top: 10.0),
+        padding:
+            EdgeInsets.only(right: 10.0, bottom: bottom, left: 10.0, top: 10.0),
         child: SizedBox(
           height: 50.0,
           width: 120.0,
@@ -339,7 +345,6 @@ class _FindaRideState extends State<FindaRide> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(32.0),
               ),
-
             ),
           ),
         ),
@@ -350,21 +355,16 @@ class _FindaRideState extends State<FindaRide> {
   //the method called when the user presses the search button
   _onSearchPressed() async {
     print('search button pressed');
-    if (_areFieldsFilled()) {
-
-    }
+    if (_areFieldsFilled()) {}
   } //onSearchPressed
-
 
   //the method called when the user presses the create button
   _onCreatePressed() {
     print("on create pressed");
-    if (_areFieldsFilled()) {
-
-    }
+    if (_areFieldsFilled()) {}
   } //onCreatePressed
 
-  _onLocationPressed(){
+  _onLocationPressed() {
     _currentLocation();
   }
 
@@ -391,21 +391,14 @@ class _FindaRideState extends State<FindaRide> {
     );
   }
 
-
   Widget _googleMap(BuildContext context) {
     return Container(
-      height: MediaQuery
-          .of(context)
-          .size
-          .height,
-      width: MediaQuery
-          .of(context)
-          .size
-          .width,
+      height: MediaQuery.of(context).size.height,
+      width: MediaQuery.of(context).size.width,
       child: GoogleMap(
         initialCameraPosition: CameraPosition(
-            target:  LatLng(position.latitude,position.longitude),
-            zoom: 20,
+          target: LatLng(position.latitude, position.longitude),
+          zoom: 14,
         ),
         myLocationButtonEnabled: false,
         zoomControlsEnabled: false,
@@ -418,11 +411,9 @@ class _FindaRideState extends State<FindaRide> {
         markers: Set<Marker>.of(markers.values),
         polylines: Set<Polyline>.of(polylines.values),
         onTap: _onMapTap,
-
       ),
     );
   }
-
 
   void _onMapTap(LatLng point) {
     if (isTouchable) {
@@ -437,8 +428,8 @@ class _FindaRideState extends State<FindaRide> {
 
   Future<String> _getAddressFromLatLng(LatLng point) async {
     final coordinates = new Coordinates(point.latitude, point.longitude);
-    var address = await Geocoder.local.findAddressesFromCoordinates(
-        coordinates);
+    var address =
+        await Geocoder.local.findAddressesFromCoordinates(coordinates);
     var first = address.first;
     String name = first.addressLine;
     return name;
@@ -450,19 +441,16 @@ class _FindaRideState extends State<FindaRide> {
   }
 
   // method that adds the marker to the map
-  _addMarker(LatLng position, String id, BitmapDescriptor descriptor,
-      String info) {
+  _addMarker(
+      LatLng position, String id, BitmapDescriptor descriptor, String info) {
     MarkerId markerId = MarkerId(id);
-    Marker marker =
-    Marker(markerId: markerId,
+    Marker marker = Marker(
+        markerId: markerId,
         icon: descriptor,
         position: position,
-        infoWindow: InfoWindow(title: info
-        ));
+        infoWindow: InfoWindow(title: info));
     markers[markerId] = marker;
   }
-
-
 
   // method that creates the polyline given the from and to geolocation
   _getPolyline(String name) async {
@@ -471,7 +459,8 @@ class _FindaRideState extends State<FindaRide> {
       _originLatitude,
       _originLongitude,
       _destLatitude,
-      _destLongitude,);
+      _destLongitude,
+    );
     if (result.isNotEmpty) {
       result.forEach((PointLatLng point) {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
@@ -481,12 +470,10 @@ class _FindaRideState extends State<FindaRide> {
     Polyline polyline = Polyline(
         polylineId: id, color: Colors.blue, points: polylineCoordinates);
     polylines[id] = polyline;
-    setState(() {
-
-    });
+    setState(() {});
   }
 
-  _clearPolylines(){
+  _clearPolylines() {
     polylineCoordinates.clear();
     polylines.clear();
   }
@@ -494,7 +481,5 @@ class _FindaRideState extends State<FindaRide> {
   // _clearMarkers() {
   //   markers.clear();
   // }
-
-
 
 }
