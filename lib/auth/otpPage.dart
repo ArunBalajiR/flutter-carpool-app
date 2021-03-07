@@ -212,12 +212,13 @@ class OtpPageState extends State<OtpPage> {
             _verificationCode = verficationID;
           });
         },
+
         codeAutoRetrievalTimeout: (String verificationID) {
           setState(() {
             _verificationCode = verificationID;
           });
         },);
-        // timeout: Duration(seconds: 120));
+
   }
 
 

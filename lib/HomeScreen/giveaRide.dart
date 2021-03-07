@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert' as convert;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
@@ -10,6 +11,10 @@ import 'package:klndrive/sharedPreferences/sharedPreferences.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:search_map_place/search_map_place.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:http/http.dart' as http;
+import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:klndrive/misc/convertTime.dart';
+
 
 class FindaRide extends StatefulWidget {
   @override
@@ -17,6 +22,10 @@ class FindaRide extends StatefulWidget {
 }
 
 class _FindaRideState extends State<FindaRide> {
+  //texxtediting
+  final _controller = TextEditingController();
+  final _setPriceController = TextEditingController();
+
   //Google map variables
   Position position;
   bool mapToggle = false;
@@ -34,17 +43,24 @@ class _FindaRideState extends State<FindaRide> {
   String mapStyle;
   BitmapDescriptor bitmapImage;
 
-
-
+  var client = http.Client();
 
   //In app necessary variables
-  final format = DateFormat("dd-MM-yyyy HH:mm");
+  var inputFormat = DateFormat('h:mm a dd/MM/yyyy');
+  int myvalue = 1558432747;
+
   DateTime dateTime;
   final Color darkBlueColor = Color.fromRGBO(26, 26, 48, 1.0);
 
   //Search/Create variables
   String from = "";
   String to = "";
+
+  //sharerideconfirmation variables
+  String name = "";
+  String year = "";
+  String branch = "";
+  String phone = "";
 
   LatLng pickUpPoint;
   // ignore: deprecated_member_use
@@ -57,14 +73,12 @@ class _FindaRideState extends State<FindaRide> {
   bool isTouchable = false;
 
   //custom icon
-  Future <BitmapDescriptor> _createMarkerImageFromAsset(String iconPath) async {
+  Future<BitmapDescriptor> _createMarkerImageFromAsset(String iconPath) async {
     ImageConfiguration configuration = ImageConfiguration();
-    bitmapImage = await BitmapDescriptor.fromAssetImage(
-        configuration,iconPath);
+    bitmapImage =
+        await BitmapDescriptor.fromAssetImage(configuration, iconPath);
     return bitmapImage;
   }
-
-
 
   void _currentLocation() async {
     _mapController.animateCamera(CameraUpdate.newCameraPosition(
@@ -77,7 +91,6 @@ class _FindaRideState extends State<FindaRide> {
   }
 
   void getCurrentPosition() async {
-
     Position currentPosition = await GeolocatorPlatform.instance
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     setState(() {
@@ -114,20 +127,41 @@ class _FindaRideState extends State<FindaRide> {
     _createMarkerImageFromAsset("assets/locationpin.png");
 
     //calling marker function
+
     await getMarkerData();
-
-
+    await fetchData();
   }
 
   @override
   void initState() {
     super.initState();
     getCurrentPosition();
-
   }
 
-  void initMarker(specify,specifyID) async {
+  fetchData() async {
+    MySharedPreferences.instance
+        .getStringValue("userName")
+        .then((value) => setState(() {
+              name = value;
+            }));
+    MySharedPreferences.instance
+        .getStringValue("userBranch")
+        .then((value) => setState(() {
+              branch = value;
+            }));
+    MySharedPreferences.instance
+        .getStringValue("userYear")
+        .then((value) => setState(() {
+              year = value;
+            }));
+    MySharedPreferences.instance
+        .getStringValue("userPhone")
+        .then((value) => setState(() {
+              phone = value;
+            }));
+  }
 
+  void initMarker(specify, specifyID) async {
     var markerIdval = specifyID;
     final MarkerId markerId = MarkerId(markerIdval);
     final Marker marker = Marker(
@@ -144,12 +178,13 @@ class _FindaRideState extends State<FindaRide> {
   }
 
   getMarkerData() async {
-    FirebaseFirestore.instance.collection('location').get().then((QuerySnapshot snapshot) {
-
+    FirebaseFirestore.instance
+        .collection('location')
+        .get()
+        .then((QuerySnapshot snapshot) {
       if (snapshot.docs.isNotEmpty) {
         for (int i = 0; i < snapshot.docs.length; i++) {
           initMarker(snapshot.docs[i].data(), snapshot.docs[i].id);
-
         }
       }
     });
@@ -179,10 +214,7 @@ class _FindaRideState extends State<FindaRide> {
           mapToggle
               ? _googleMap(context)
               : Center(
-                  child: Text(
-                    'Loading...',
-                    style: TextStyle(fontSize: 20.0),
-                  ),
+                  child: CircularProgressIndicator(),
                 ),
           _startingScreen(showStartingScreen),
         ],
@@ -199,18 +231,7 @@ class _FindaRideState extends State<FindaRide> {
             height: 250.0,
             child: ListView(
               children: <Widget>[
-                _fillField(
-                    "From: ",
-                    Colors.blue,
-                    10.0,
-                    BitmapDescriptor.defaultMarkerWithHue(
-                        BitmapDescriptor.hueBlue)),
-                _fillField(
-                    "To: ",
-                    Colors.red,
-                    10.0,
-                    BitmapDescriptor.defaultMarkerWithHue(
-                        BitmapDescriptor.hueRed)),
+                _fillField("To: ", Colors.red, 10.0, Icons.location_pin),
                 _dateField(),
               ],
             ),
@@ -226,57 +247,35 @@ class _FindaRideState extends State<FindaRide> {
     );
   }
 
-  Align _fillField(
-      String str, Color clr, double top, BitmapDescriptor bitmapDescriptor) {
+  Align _fillField(String str, Color clr, double top, IconData icon) {
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
-          padding: EdgeInsets.only(left: 20.0, right: 20.0, top: top),
-          child: SearchMapPlaceWidget(
-            language: 'en',
-            hasClearButton: true,
-            placeType: PlaceType.address,
-            apiKey: _googleAPiKey,
-            placeholder: str,
-            icon: IconData(0xe55f, fontFamily: 'MaterialIcons'),
-            iconColor: clr,
-            // The position used to give better recommendations. In this case we are using the user position
-            location: LatLng(37.9931036, 23.7301123),
-            radius: 30000,
-            onSelected: (Place place) async {
-              final geolocation = await place.geolocation;
-              _mapController.animateCamera(
-                  CameraUpdate.newLatLng(geolocation.coordinates));
-              _mapController.animateCamera(
-                  CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
+        padding: EdgeInsets.only(left: 20.0, right: 20.0, top: top),
+        child: TextField(
+          onChanged: (val) {
+            to = val;
+            // findPlace(val);
+          },
+          autofocus: false,
 
-              _clearPolylines();
+          controller: _controller,
 
-              if (str == "From: ") {
-                from = place.description;
-                _addMarker(geolocation.coordinates, place.placeId,
-                    bitmapDescriptor, place.description);
-                _originLatitude = placeCords.latitude;
-                _originLongitude = placeCords.longitude;
-                startCords = placeCords;
-                setState(() {});
-              }
-
-              if (str == "To: ") {
-                to = place.description;
-                _addMarker(geolocation.coordinates, place.placeId,
-                    bitmapDescriptor, place.description);
-                _destLatitude = placeCords.latitude;
-                _destLongitude = placeCords.longitude;
-                endCords = placeCords;
-              }
-
-              if (_originLongitude != null &&
-                  _originLatitude != null &&
-                  _destLongitude != null &&
-                  _destLatitude != null) _getPolyline("demo");
-            },
-          )),
+          cursorColor: Colors.black,
+          // controller: appState.locationController,
+          decoration: InputDecoration(
+            filled: true,
+            prefixIcon: Icon(
+              Icons.location_on,
+              color: clr,
+            ),
+            hintText: str,
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.only(left: 15.0, top: 16.0),
+            fillColor: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 
@@ -286,7 +285,7 @@ class _FindaRideState extends State<FindaRide> {
         child: Padding(
             padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 10.0),
             child: DateTimeField(
-              format: format,
+              format: inputFormat,
               onChanged: (DateTime dt) {
                 dateTime = dt;
               },
@@ -361,7 +360,107 @@ class _FindaRideState extends State<FindaRide> {
   //the method called when the user presses the create button
   _onCreatePressed() {
     print("on create pressed");
-    if (_areFieldsFilled()) {}
+    if (_areFieldsFilled()) {
+      to = _controller.text;
+
+      Alert(
+          context: context,
+          title: "$to,${DateFormat('h:mm a dd/MM/yyyy').format(dateTime)}",
+          content: Column(
+            children: <Widget>[
+              //userdetails
+              Container(
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: AssetImage("assets/accountAvatar.jpg"),
+                  ),
+                  title: Text(
+                    "Name: " + name,
+                    style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Row(
+                    children: <Widget>[
+                      Text(
+                        "Branch: " + branch,
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        "Year: " + year,
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Ride Details -- Destination and Time
+              Container(
+                // color: Colors.cyan,
+                child: ListTile(
+                  leading: Icon(
+                    Icons.location_on,
+                    color: Colors.blue,
+                  ),
+                  title: Text(
+                    _controller.text,
+                    style: TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(
+                    "Time : " + convertTimeTo12Hour(dateTime),
+                    style: TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                // color: Colors.greenAccent,
+                child: ListTile(
+                  leading: Icon(
+                    Icons.monetization_on,
+                    color: Colors.blue,
+                  ),
+                  title: TextField(
+                    controller: _setPriceController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                    ),
+                  ),
+                  trailing: TextButton(
+                    child: Text(
+                      "Set Price",
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                    onPressed: () {
+                      _showToast("Price Requested");
+                      FocusScope.of(context).requestFocus(null);
+                      setState(() {
+                        // price = newPrice;
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          buttons: [
+            DialogButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "Offer Ride",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+            )
+          ]).show();
+      _controller.clear();
+    }
   } //onCreatePressed
 
   _onLocationPressed() {
@@ -369,11 +468,7 @@ class _FindaRideState extends State<FindaRide> {
   }
 
   bool _areFieldsFilled() {
-    if (from == "") {
-      _showToast("Missing 'From' field!");
-      return false;
-    }
-    if (to == "") {
+    if (_controller.text.isEmpty) {
       _showToast("Missing 'To' field!");
       return false;
     }
@@ -473,13 +568,28 @@ class _FindaRideState extends State<FindaRide> {
     setState(() {});
   }
 
+  // void findPlace(String placeName) async {
+  //
+  //   String autoCompleteUrl = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$placeName&key=$_googleAPiKey& sessiontoken=1234567890&components=country:in";
+  //   var response = await http.get(autoCompleteUrl);
+  //   if (response.statusCode == 200) {
+  //     var jsonResponse = convert.jsonDecode(response.body);
+  //     print("places predictions : $jsonResponse");
+  //   }else{
+  //     print('Request failed with status: ${response.statusCode}.');
+  //   }
+  //
+  //
+  //
+  //
+  // }
+
   _clearPolylines() {
     polylineCoordinates.clear();
     polylines.clear();
   }
-  //
-  // _clearMarkers() {
-  //   markers.clear();
-  // }
 
+  _clearMarkers() {
+    markers.clear();
+  }
 }
