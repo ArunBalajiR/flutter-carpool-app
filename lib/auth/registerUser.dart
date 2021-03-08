@@ -51,6 +51,8 @@ class _SignUpState extends State<SignUp> {
     MySharedPreferences.instance.setStringValue("userName", name);
     MySharedPreferences.instance.setStringValue("userPhone", phone);
     MySharedPreferences.instance.setStringValue("userBranch", branch);
+    MySharedPreferences.instance.setStringValue("vechicleno", vehicleNo);
+    MySharedPreferences.instance.setStringValue("email", email);
     MySharedPreferences.instance.setStringValue("userYear", year);
     MySharedPreferences.instance.setBoolValue("isLoggedIn", true);
     MySharedPreferences.instance.setIntValue("carpool", carpool);

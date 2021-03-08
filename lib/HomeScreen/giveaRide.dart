@@ -7,13 +7,16 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:klndrive/HomeScreen/autocompletePrediction.dart';
 import 'package:klndrive/sharedPreferences/sharedPreferences.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:search_map_place/search_map_place.dart';
+
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:http/http.dart' as http;
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:klndrive/misc/convertTime.dart';
+import 'package:klndrive/HomeScreen/placepredictions.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 
 class FindaRide extends StatefulWidget {
@@ -40,6 +43,7 @@ class _FindaRideState extends State<FindaRide> {
   PolylinePoints polylinePoints = PolylinePoints();
   List<LatLng> polylineCoordinates = [];
   String _googleAPiKey = "AIzaSyAUGbmKdakEcP5AA21mBQtyWw3EgyqBf0o";
+  String _placesAPIKey = 'ge-29f1f4bb7c8e8f27';
   String mapStyle;
   BitmapDescriptor bitmapImage;
 
@@ -47,13 +51,16 @@ class _FindaRideState extends State<FindaRide> {
 
   //In app necessary variables
   var inputFormat = DateFormat('h:mm a dd/MM/yyyy');
-  int myvalue = 1558432747;
+
+  String price;
 
   DateTime dateTime;
   final Color darkBlueColor = Color.fromRGBO(26, 26, 48, 1.0);
 
+  List<PlacePredictions> placePredictionList = [];
+
   //Search/Create variables
-  String from = "";
+
   String to = "";
 
   //sharerideconfirmation variables
@@ -61,6 +68,8 @@ class _FindaRideState extends State<FindaRide> {
   String year = "";
   String branch = "";
   String phone = "";
+  String vehicleno = "";
+  String email = "";
 
   LatLng pickUpPoint;
   // ignore: deprecated_member_use
@@ -71,6 +80,9 @@ class _FindaRideState extends State<FindaRide> {
   //booleans for widgets' visibility
   bool showStartingScreen = true;
   bool isTouchable = false;
+
+  //firestore instancce
+  final _firestore = FirebaseFirestore.instance;
 
   //custom icon
   Future<BitmapDescriptor> _createMarkerImageFromAsset(String iconPath) async {
@@ -158,6 +170,16 @@ class _FindaRideState extends State<FindaRide> {
         .getStringValue("userPhone")
         .then((value) => setState(() {
               phone = value;
+            }));
+    MySharedPreferences.instance
+        .getStringValue("vechicleno")
+        .then((value) => setState(() {
+              vehicleno = value;
+            }));
+    MySharedPreferences.instance
+        .getStringValue("email")
+        .then((value) => setState(() {
+              email = value;
             }));
   }
 
@@ -252,28 +274,40 @@ class _FindaRideState extends State<FindaRide> {
       alignment: Alignment.topCenter,
       child: Padding(
         padding: EdgeInsets.only(left: 20.0, right: 20.0, top: top),
-        child: TextField(
-          onChanged: (val) {
-            to = val;
-            // findPlace(val);
-          },
-          autofocus: false,
+        child: TypeAheadField(
+          textFieldConfiguration: TextFieldConfiguration(
+              autofocus: false,
+              controller: _controller,
 
-          controller: _controller,
-
-          cursorColor: Colors.black,
-          // controller: appState.locationController,
-          decoration: InputDecoration(
-            filled: true,
-            prefixIcon: Icon(
-              Icons.location_on,
-              color: clr,
-            ),
-            hintText: str,
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.only(left: 15.0, top: 16.0),
-            fillColor: Colors.white,
+              decoration:InputDecoration(
+                filled: true,
+                prefixIcon: Icon(
+                  Icons.location_on,
+                  color: clr,
+                ),
+                hintText: str,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.only(left: 15.0, top: 16.0),
+                fillColor: Colors.white,
+              ),
           ),
+          suggestionsCallback: (pattern) async {
+            return CitiesService.getSuggestions(pattern);
+          },
+          itemBuilder: (context, suggestion) {
+            return ListTile(
+              title: Text(suggestion),
+            );
+          },
+          onSuggestionSelected: (suggestion) {
+            _controller.text = suggestion;
+          },
+
+
+
+
+
+
         ),
       ),
     );
@@ -362,7 +396,6 @@ class _FindaRideState extends State<FindaRide> {
     print("on create pressed");
     if (_areFieldsFilled()) {
       to = _controller.text;
-
       Alert(
           context: context,
           title: "$to,${DateFormat('h:mm a dd/MM/yyyy').format(dateTime)}",
@@ -376,7 +409,8 @@ class _FindaRideState extends State<FindaRide> {
                   ),
                   title: Text(
                     "Name: " + name,
-                    style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.bold),
                   ),
                   subtitle: Row(
                     children: <Widget>[
@@ -408,7 +442,8 @@ class _FindaRideState extends State<FindaRide> {
                   title: Text(
                     _controller.text,
                     style: TextStyle(
-                      color: Colors.black, fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   subtitle: Text(
@@ -442,7 +477,7 @@ class _FindaRideState extends State<FindaRide> {
                       _showToast("Price Requested");
                       FocusScope.of(context).requestFocus(null);
                       setState(() {
-                        // price = newPrice;
+                        price = _setPriceController.text;
                       });
                     },
                   ),
@@ -452,7 +487,19 @@ class _FindaRideState extends State<FindaRide> {
           ),
           buttons: [
             DialogButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                _firestore.collection('rides').add({
+                  'sender': name,
+                  'destination': to,
+                  'ridetime': convertTimeTo12Hour(dateTime),
+                  'price': price,
+                  'phone': phone,
+                  'upi': email,
+                  'vechicleno': vehicleno,
+                  'timestamp': Timestamp.now(),
+                });
+                Navigator.pop(context);
+              },
               child: Text(
                 "Offer Ride",
                 style: TextStyle(color: Colors.white, fontSize: 20),
@@ -567,22 +614,6 @@ class _FindaRideState extends State<FindaRide> {
     polylines[id] = polyline;
     setState(() {});
   }
-
-  // void findPlace(String placeName) async {
-  //
-  //   String autoCompleteUrl = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$placeName&key=$_googleAPiKey& sessiontoken=1234567890&components=country:in";
-  //   var response = await http.get(autoCompleteUrl);
-  //   if (response.statusCode == 200) {
-  //     var jsonResponse = convert.jsonDecode(response.body);
-  //     print("places predictions : $jsonResponse");
-  //   }else{
-  //     print('Request failed with status: ${response.statusCode}.');
-  //   }
-  //
-  //
-  //
-  //
-  // }
 
   _clearPolylines() {
     polylineCoordinates.clear();

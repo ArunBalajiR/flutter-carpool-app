@@ -21,6 +21,7 @@ dependencies:
   fluttertoast: ^7.1.8
   geocoder: ^0.2.1
   google_maps_webservice: ^0.0.19
+  flutter_typeahead: ^2.0.0
   search_map_place: ^0.3.0
   rflutter_alert: ^1.1.0
   geolocator: ^6.2.1
