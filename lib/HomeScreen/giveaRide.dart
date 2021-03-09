@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:convert' as convert;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
@@ -11,11 +10,9 @@ import 'package:klndrive/HomeScreen/autocompletePrediction.dart';
 import 'package:klndrive/sharedPreferences/sharedPreferences.dart';
 import 'package:geolocator/geolocator.dart';
 
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:http/http.dart' as http;
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:klndrive/misc/convertTime.dart';
-import 'package:klndrive/HomeScreen/placepredictions.dart';
+
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 
@@ -34,35 +31,16 @@ class _FindaRideState extends State<FindaRide> {
   bool mapToggle = false;
 
   GoogleMapController _mapController;
-
-  double _originLatitude, _originLongitude;
-  LatLng placeCords, startCords, endCords;
-  double _destLatitude, _destLongitude;
   Map<MarkerId, Marker> markers = {};
-  Map<PolylineId, Polyline> polylines = {};
-  PolylinePoints polylinePoints = PolylinePoints();
-  List<LatLng> polylineCoordinates = [];
-  String _googleAPiKey = "AIzaSyAUGbmKdakEcP5AA21mBQtyWw3EgyqBf0o";
-  String _placesAPIKey = 'ge-29f1f4bb7c8e8f27';
-  String mapStyle;
   BitmapDescriptor bitmapImage;
-
-  var client = http.Client();
 
   //In app necessary variables
   var inputFormat = DateFormat('h:mm a dd/MM/yyyy');
-
   String price;
-
   DateTime dateTime;
-  final Color darkBlueColor = Color.fromRGBO(26, 26, 48, 1.0);
-
-  List<PlacePredictions> placePredictionList = [];
 
   //Search/Create variables
-
   String to = "";
-
   //sharerideconfirmation variables
   String name = "";
   String year = "";
@@ -71,11 +49,6 @@ class _FindaRideState extends State<FindaRide> {
   String vehicleno = "";
   String email = "";
 
-  LatLng pickUpPoint;
-  // ignore: deprecated_member_use
-  List<LatLng> randPoints = new List<LatLng>();
-  // ignore: deprecated_member_use
-  List<String> selectedPoints = new List<String>();
 
   //booleans for widgets' visibility
   bool showStartingScreen = true;
@@ -113,8 +86,6 @@ class _FindaRideState extends State<FindaRide> {
 
     CollectionReference location =
         FirebaseFirestore.instance.collection('location');
-    // FirebaseAuth _auth = FirebaseAuth.instance;
-    // String uid = _auth.currentUser.uid.toString();
     final coordinated = new Coordinates(position.latitude, position.longitude);
     var address =
         await Geocoder.local.findAddressesFromCoordinates(coordinated);
@@ -129,11 +100,11 @@ class _FindaRideState extends State<FindaRide> {
     });
 
     print(await MySharedPreferences.instance.getStringValue("userName"));
-    print(position.latitude);
-    print(position.longitude);
-    print(firstAddress.addressLine);
-    print(firstAddress.postalCode);
-    print(firstAddress.locality);
+    // print(position.latitude);
+    // print(position.longitude);
+    // print(firstAddress.addressLine);
+    // print(firstAddress.postalCode);
+    // print(firstAddress.locality);
 
     //set custom icon
     _createMarkerImageFromAsset("assets/locationpin.png");
@@ -186,10 +157,10 @@ class _FindaRideState extends State<FindaRide> {
   void initMarker(specify, specifyID) async {
     var markerIdval = specifyID;
     final MarkerId markerId = MarkerId(markerIdval);
-    final Marker marker = Marker(
+    final Marker marker =  Marker(
       markerId: markerId,
       icon: bitmapImage,
-      position: LatLng(specify['locationpoint'].latitude,
+      position:  LatLng(specify['locationpoint'].latitude,
           specify['locationpoint'].longitude),
       infoWindow:
           InfoWindow(title: specify['username'], snippet: specify['address']),
@@ -200,7 +171,7 @@ class _FindaRideState extends State<FindaRide> {
   }
 
   getMarkerData() async {
-    FirebaseFirestore.instance
+    await FirebaseFirestore.instance
         .collection('location')
         .get()
         .then((QuerySnapshot snapshot) {
@@ -258,10 +229,8 @@ class _FindaRideState extends State<FindaRide> {
               ],
             ),
           ),
-          _customButton(Alignment.bottomRight, 145.0, Icons.my_location, "Me",
+          _customButton(Alignment.bottomRight, 80.0, Icons.my_location, "Me",
               _onLocationPressed),
-          _customButton(Alignment.bottomRight, 80.0, Icons.search, "Search",
-              _onSearchPressed),
           _customButton(Alignment.bottomRight, 15.0, Icons.add, "Create",
               _onCreatePressed),
         ],
@@ -385,12 +354,6 @@ class _FindaRideState extends State<FindaRide> {
     );
   }
 
-  //the method called when the user presses the search button
-  _onSearchPressed() async {
-    print('search button pressed');
-    if (_areFieldsFilled()) {}
-  } //onSearchPressed
-
   //the method called when the user presses the create button
   _onCreatePressed() {
     print("on create pressed");
@@ -398,7 +361,7 @@ class _FindaRideState extends State<FindaRide> {
       to = _controller.text;
       Alert(
           context: context,
-          title: "$to,${DateFormat('h:mm a dd/MM/yyyy').format(dateTime)}",
+          title: "Confirm Ride",
           content: Column(
             children: <Widget>[
               //userdetails
@@ -498,7 +461,26 @@ class _FindaRideState extends State<FindaRide> {
                   'vechicleno': vehicleno,
                   'timestamp': Timestamp.now(),
                 });
+
+
                 Navigator.pop(context);
+                showDialog(
+                    context: context,
+                    builder: (context) => new AlertDialog(
+                      title: new Text('Success',textAlign: TextAlign.center,style: TextStyle(color: Colors.green,fontSize: 20,fontWeight: FontWeight.bold),),
+                      content: Text(
+                        'Your ride was shared. \nWait for confirmation call'),
+                      actions: <Widget>[
+                        new TextButton(
+                          onPressed: () {
+                          Navigator.of(context, rootNavigator: true)
+                            .pop(); // dismisses only the dialog and returns nothing
+                      },
+                        child: new Text('OK'),
+                    ),
+                  ],
+                ),
+                );
               },
               child: Text(
                 "Offer Ride",
@@ -551,7 +533,7 @@ class _FindaRideState extends State<FindaRide> {
         zoomGesturesEnabled: true,
         onMapCreated: onMapCreated,
         markers: Set<Marker>.of(markers.values),
-        polylines: Set<Polyline>.of(polylines.values),
+
         onTap: _onMapTap,
       ),
     );
@@ -582,45 +564,9 @@ class _FindaRideState extends State<FindaRide> {
     // _mapController.setMapStyle(mapStyle);
   }
 
-  // method that adds the marker to the map
-  _addMarker(
-      LatLng position, String id, BitmapDescriptor descriptor, String info) {
-    MarkerId markerId = MarkerId(id);
-    Marker marker = Marker(
-        markerId: markerId,
-        icon: descriptor,
-        position: position,
-        infoWindow: InfoWindow(title: info));
-    markers[markerId] = marker;
-  }
 
-  // method that creates the polyline given the from and to geolocation
-  _getPolyline(String name) async {
-    List<PointLatLng> result = await polylinePoints.getRouteBetweenCoordinates(
-      _googleAPiKey,
-      _originLatitude,
-      _originLongitude,
-      _destLatitude,
-      _destLongitude,
-    );
-    if (result.isNotEmpty) {
-      result.forEach((PointLatLng point) {
-        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
-      });
-    }
-    PolylineId id = PolylineId(name);
-    Polyline polyline = Polyline(
-        polylineId: id, color: Colors.blue, points: polylineCoordinates);
-    polylines[id] = polyline;
-    setState(() {});
-  }
 
-  _clearPolylines() {
-    polylineCoordinates.clear();
-    polylines.clear();
-  }
 
-  _clearMarkers() {
-    markers.clear();
-  }
+
+
 }

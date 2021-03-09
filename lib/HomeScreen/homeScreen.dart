@@ -31,9 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: Colors.black,
         items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: "ShareRide"),
+              icon: Icon(Icons.directions_bike), label: "ShareRide"),
           BottomNavigationBarItem(
-              icon: Icon(Icons.directions_bike), label: "FindRide"),
+              icon: Icon(Icons.search), label: "FindRide"),
           BottomNavigationBarItem(
               icon: Icon(Icons.account_circle_rounded), label: "Profile"),
         ],

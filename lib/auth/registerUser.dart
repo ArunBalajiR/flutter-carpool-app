@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:klndrive/auth/userData.dart';
 import 'package:klndrive/sharedPreferences/sharedPreferences.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class SignUp extends StatefulWidget {
   final String phone;
@@ -14,6 +12,8 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
+  TextEditingController _controller = TextEditingController();
+
   String uid;
   String mob;
   //dropdown variables
@@ -25,7 +25,9 @@ class _SignUpState extends State<SignUp> {
     'EIE',
     'MECH',
     'AUTO',
-  ]; // Option 2
+  ];
+
+
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
@@ -36,15 +38,31 @@ class _SignUpState extends State<SignUp> {
   String vehicleNo;
   String branch = 'CSE';
   String year = '1';
-  int carpool;
+  int carpool = 0;
   bool _isVisible = true;
+
+  bool _areFieldsFilled() {
+    if (_controller.text.isEmpty) {
+      _showToast("Name is required");
+      return false;
+    }
+
+    return true;
+  }
+
+  _showToast(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      timeInSecForIosWeb: 1,
+    );
+  }
 
   void saveUserInfo() async {
     uid = FirebaseAuth.instance.currentUser.uid;
     phone = FirebaseAuth.instance.currentUser.phoneNumber;
     await UserDatabaseService(uid: uid)
         .updateUserData(name, email, branch, year, carpool, vehicleNo);
-    print("stored user details in firestore");
+    // print("stored user details in firestore");
 
     //save user id from response in local storage
 
@@ -57,67 +75,17 @@ class _SignUpState extends State<SignUp> {
     MySharedPreferences.instance.setBoolValue("isLoggedIn", true);
     MySharedPreferences.instance.setIntValue("carpool", carpool);
 
-    print("stored user data in local storage");
+    // print("stored user data in local storage");
   }
 
   // Submit the user details to database
   void _submitForm(BuildContext context) async {
-    // alertbox
-    final alertDialog = AlertDialog(
-      content: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-          ),
-          SizedBox(
-            width: 40.0,
-          ),
-          Text(
-            "Sending Request",
-            style: TextStyle(color: Colors.grey),
-          )
-        ],
-      ),
-    );
-    showDialog(
-      context: context,
-      builder: (BuildContext context) => alertDialog,
-      barrierDismissible: false,
-    );
-
-    //save user information in shared preferences
     saveUserInfo();
-
-    String url = "http://192.168.43.112:8000/api/user/";
-    //single quotes are important
-    Map<String, dynamic> userDetails = {
-      'name': name,
-      // 'branch': branch,
-
-      'year': year,
-      'phone': email,
-      'acceptedRides': []
-    };
-
-    //send user sign up details to backend
-    http
-        .post(url,
-            headers: {"Content-Type": "application/json"},
-            body: json.encode(userDetails))
-        .then((response) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      print(responseData);
-
-      // go to home screen
-      Timer(Duration(seconds: 2), () {
-        Navigator.pop(context);
-        Navigator.pushReplacementNamed(context, '/homescreen');
-      });
-    }).catchError((e) {
-      print(e);
-    });
   }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +93,6 @@ class _SignUpState extends State<SignUp> {
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: false,
       body: ListView(
-        // mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Image(
             //
@@ -160,16 +127,11 @@ class _SignUpState extends State<SignUp> {
                 children: <Widget>[
                   // UserName
                   TextFormField(
+                    controller: _controller,
                     decoration: InputDecoration(
                         labelText: "Name", icon: Icon(Icons.account_circle)),
                     keyboardType: TextInputType.text,
                     style: TextStyle(fontFamily: "Poppins"),
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return "Name field is required";
-                      }
-                      return null;
-                    },
                     onChanged: (val) {
                       setState(() {
                         name = val;
@@ -179,14 +141,8 @@ class _SignUpState extends State<SignUp> {
                   // Phone
                   TextFormField(
                     decoration: InputDecoration(
-                        labelText: "Email ID", icon: Icon(Icons.mail_outline)),
+                        labelText: "UPI ID", icon: Icon(Icons.credit_card_outlined)),
                     keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return "Email Id is required";
-                      }
-                      return null;
-                    },
                     onChanged: (val) {
                       setState(() {
                         email = val;
@@ -277,7 +233,7 @@ class _SignUpState extends State<SignUp> {
                       )
                     ],
                   ),
-                  Padding(padding: EdgeInsets.all(10.0)),
+                  Padding(padding: EdgeInsets.only(top:10.0,left: 10.0,right: 10.0),),
                   Visibility(
                     visible: _isVisible,
                     child: TextFormField(
@@ -286,12 +242,7 @@ class _SignUpState extends State<SignUp> {
                           icon: Icon(Icons.directions_bike)),
                       keyboardType: TextInputType.text,
                       style: TextStyle(fontFamily: "Poppins"),
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "This field is required";
-                        }
-                        return null;
-                      },
+
                       onChanged: (val) {
                         setState(() {
                           vehicleNo = val;
@@ -299,18 +250,24 @@ class _SignUpState extends State<SignUp> {
                       },
                     ),
                   ),
+                  SizedBox(height: 10,),
                   // Submit Button
+
                   Container(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width / 2,
+                        Container(
+                          width: 300,
+                          height: 50,
                           child: ElevatedButton(
                               child: Text("Register"),
                               onPressed: () {
-                                _submitForm(context);
-                                Navigator.pushNamed(context, "/homescreen");
+                                if(_areFieldsFilled()){
+                                  _submitForm(context);
+                                  Navigator.pushNamed(context, "/homescreen");
+                                }
+
                               }),
                         )
                       ],

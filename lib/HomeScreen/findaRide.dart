@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:klndrive/sharedPreferences/sharedPreferences.dart';
-import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:klndrive/HomeScreen/rideDetailCard.dart';
 
 final _firestore = FirebaseFirestore.instance;
 final phone = FirebaseAuth.instance.currentUser.phoneNumber;
@@ -114,76 +114,4 @@ class RideStream extends StatelessWidget {
       },
     );
   }
-}
-
-class RideDetailCard extends StatelessWidget {
-  RideDetailCard({this.rideSender, this.rideDestination, this.rideTime,this.ridePrice, this.ridePhone, this.rideUPI,this.rideVehicleNo, this.timestamp, this.isMe});
-
-  final String rideSender;
-  final String rideDestination;
-  final String rideTime;
-  final String ridePrice;
-  final String ridePhone;
-  final String rideUPI;
-  final String rideVehicleNo;
-  final Timestamp timestamp;
-  final bool isMe;
-
-  @override
-  Widget build(BuildContext context) {
-    final dateTime =
-    DateTime.fromMillisecondsSinceEpoch(timestamp.seconds * 1000);
-    return Padding(
-      padding: EdgeInsets.all(10.0),
-      child: Column(
-        crossAxisAlignment:
-        isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            "$rideSender",
-            style: TextStyle(fontSize: 12.0, color: Colors.black54),
-          ),
-          Material(
-            borderRadius: isMe
-                ? BorderRadius.only(
-              bottomLeft: Radius.circular(30.0),
-              topLeft: Radius.circular(30.0),
-              bottomRight: Radius.circular(30.0),
-            )
-                : BorderRadius.only(
-              bottomLeft: Radius.circular(30.0),
-              topRight: Radius.circular(30.0),
-              bottomRight: Radius.circular(30.0),
-            ),
-            elevation: 5.0,
-            color: isMe ? Colors.blue : Colors.lightBlueAccent,
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-              child: Column(
-                crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    " I am goin to $rideDestination at $rideTime . You have to pay me $ridePrice using this upi $rideUPI call me $ridePhone Vehicledetails are here $rideVehicleNo",
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      color: isMe ? Colors.white : Colors.black54,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top:6.0),
-                    child: Text("${DateFormat('h:mm a').format(dateTime)}",style: TextStyle(
-                      fontSize: 9.0,
-                      color: isMe ? Colors.white.withOpacity(0.5) : Colors.black54.withOpacity(0.5),
-                    ),),
-                  ),],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-  }
-
-
 }

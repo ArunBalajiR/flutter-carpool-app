@@ -16,7 +16,7 @@ class CitiesService {
 
       "80 Feet Road",
       "Alagappan Nagar",
-      "Alagar Kavil Road",
+      "Alagar Kovil Road",
       "Amman Sannathi Street",
       "Anaiyur",
       "Andalpuram",

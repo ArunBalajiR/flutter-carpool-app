@@ -11,28 +11,25 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^0.12.2
   shared_preferences: ^0.5.12+4
-  url_launcher: ^5.7.10
   firebase_auth: ^0.20.1
   firebase_core: ^0.7.0
   cloud_firestore: ^0.16.0+1
   google_maps_flutter: ^0.5.13
   fluttertoast: ^7.1.8
   geocoder: ^0.2.1
-  google_maps_webservice: ^0.0.19
   flutter_typeahead: ^2.0.0
-  search_map_place: ^0.3.0
   rflutter_alert: ^1.1.0
   geolocator: ^6.2.1
   datetime_picker_formfield: ^1.0.0
-  flutter_polyline_points: ^0.1.0
-
+  url_launcher: ^5.0.2
+  flutter_phone_direct_caller: ^1.0.1
   pinput: ^0.2.0
 
-  cupertino_icons: ^1.0.2
+
 
 dev_dependencies:
+
   flutter_test:
     sdk: flutter
   integration_test:
